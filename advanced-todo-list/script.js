@@ -9,24 +9,24 @@ const toDoListElement = document.querySelector("#list");
 
 const PREFIX = "TODO-ADVANCED";
 const STORAGE_KEY = `${PREFIX}-STORAGE-KEY`;
-const toDoList = loadToDos() || [];
+let toDoList = loadToDos();
 
-toDoList.forEach((toDo) => {
-  renderToDo(toDo);
-});
+toDoList.forEach(renderToDo);
 
 // When form is submitted, check the input is not empty and add the input value to toDoList
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
+
+  const toDoName = toDoInput.value;
   // return if input is empty
 
-  if (toDoInput.value === "") return;
+  if (!toDoName) return;
 
   // Create new toDo item object.
   const newtoDo = {
-    id: new Date().valueOf(), // This create an always unique id.
-    text: toDoInput.value,
+    id: new Date().valueOf().toString(), // This create an always unique id.
+    name: toDoName,
     done: false,
   };
 
@@ -38,47 +38,54 @@ form.addEventListener("submit", (e) => {
 
   // save toDo;
   toDoList.push(newtoDo);
-  saveToDos(toDoList);
+  saveToDos();
 });
 
+// Adding event listener to toDo list.
+
 toDoListElement.addEventListener("click", (e) => {
+  console.log(e.target);
   const listItem = e.target.closest(".list-item");
+  const id = listItem.dataset.id;
+
   // When delete button is pressed, delete toDo.
   if (e.target.matches("[data-button-delete]")) {
-    deleteToDo(listItem);
+    deleteToDo(id);
   }
 
   // When checkbock is pressed, mark toDo as complete.
   if (e.target.matches("[data-list-item-checkbox]")) {
-    const id = listItem.dataset.id;
-    const toDo = toDoList.find((toDo) => toDo.id == id);
-    toDo.done = !toDo.done;
-    saveToDos(toDoList);
+    completeToDo(id);
   }
 });
 
-function deleteToDo(listItem) {
-  const id = listItem.dataset.id;
-  const newToDoList = toDoList.filter((toDo) => {
-    return toDo.id != id;
+function deleteToDo(id) {
+  toDoList = toDoList.filter((toDo) => {
+    return toDo.id !== id;
   });
-  listItem.remove();
-  saveToDos(newToDoList);
+  const toDoElement = toDoListElement.querySelector(`[data-id="${id}"]`);
+  toDoElement.remove();
+  saveToDos();
 }
 
-function saveToDos(toDoList) {
+function completeToDo(id) {
+  const toDo = toDoList.find((toDo) => toDo.id == id);
+  toDo.done = !toDo.done;
+  saveToDos();
+}
+function saveToDos() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(toDoList));
 }
 
 function loadToDos() {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY));
+  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 }
 
 function renderToDo(toDo) {
   // cloning template
   const template = listItemTemplate.content.cloneNode(true);
   const toDoText = template.querySelector("[data-list-item-text]");
-  toDoText.textContent = toDo.text;
+  toDoText.textContent = toDo.name;
   const toDoCheckBox = template.querySelector("[data-list-item-checkbox]");
   toDoCheckBox.checked = toDo.done;
   const toDoId = template.querySelector("[data-id]");
