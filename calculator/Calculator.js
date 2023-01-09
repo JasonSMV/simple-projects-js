@@ -43,6 +43,8 @@ export class Calculator {
   }
 
   chooseOperation(operation) {
+    if (!this.number) return;
+
     this.#operation = operation;
     if (!this.#number1) {
       this.#number1 = this.#currentNumber;
@@ -77,6 +79,4 @@ export class Calculator {
         break;
     }
   }
-
-  handlePeriod() {}
 }
